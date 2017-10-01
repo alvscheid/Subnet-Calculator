@@ -21,8 +21,42 @@ import model.Ip;
 import model.IpAndSubnet;
 import model.IpVLSM;
 
+/* 
+ * Code developed by Alvaro Scheid to resolve a problem from Computer Networks:
+ * For any IP address entered, display the Network class, the default (classfull) subnet mask, and the CIDR notation.
+Also display how many hosts per subnet, the network address and broadcast address.
+
+For instance, if you enter 199.212.55.7
+
+The result should be:
+
+Network Class: C
+Subnet Mask: 255.255.255.0
+CIDR: /24
+Hosts per subnet: 254
+Network Address: 199.212.55.0
+Broadcast Address: 199.212.55.255
+Bits in Host: 8
+Bits in Network: 24
+
+You also need to be able to specify an IP address with a VLSM (variable length subnet mask) or an IP address with a dotted decimal notation subnet mask.
+
+For instance if you enter:
+
+199.212.55.7/16 or 199.212.55.7 255.255.0.0 the result should be
+
+Subnet Mask: 255.255.0.0
+CIDR: /16
+Hosts per subnet: 65534
+Network Address: 199.212.0.0
+Broadcast Address: 199.212.255.255
+Bits in Host: 16
+Bits in Network: 16
+ */
 public class Calculator {
 
+	
+	/* Variable declaration for use */
 	private JFrame frmSubnetCalculator;
 	private JTextField firstOct;
 	private JTextField secondOct;
@@ -79,14 +113,26 @@ public class Calculator {
 
 	}
 
+	private String replaceMissingChars(String bin) {
+		if (bin.length() < 8) {
+			String a = "";
+			for (int i = 0; i < 8 - bin.length(); i++) {
+				a = a + "0";
+			}
+			bin = a + bin;
+		}
+		return bin;
+	}
+
 	/**
 	 * Initialize the contents of the frame.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void initialize() {
+		
+		/* CREATION OF ALL ITEMS FOR THE UI PANEL! */
 		frmSubnetCalculator = new JFrame();
 		frmSubnetCalculator.setResizable(false);
-		frmSubnetCalculator.setAlwaysOnTop(true);
 		frmSubnetCalculator.setLocationRelativeTo(null);
 		frmSubnetCalculator.setTitle("Subnet Calculator");
 		frmSubnetCalculator.setBounds(100, 100, 435, 457);
@@ -341,7 +387,9 @@ public class Calculator {
 		frmSubnetCalculator.getContentPane().add(label_12);
 
 		JComboBox typeOfIp = new JComboBox();
-
+		
+		/*ListenerFunction that acts resolving the problem from the radio box selection
+		 * When you click in a radio box, all the others need to bem turned of*/
 		typeOfIp.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (typeOfIp.getSelectedIndex() == 0) {
@@ -469,49 +517,34 @@ public class Calculator {
 		bitsInNetwork.setBounds(102, 401, 180, 20);
 		frmSubnetCalculator.getContentPane().add(bitsInNetwork);
 		bitsInNetwork.setColumns(10);
+		
+		/*
+		 * Code of the function the takes care and handle all te calculations for the problem
+		 * proposed for the assignment! There are three options that follow the selection from
+		 * the radio box. Each one have diff aproach for the solution.
+		 * 
+		 * TYPE 0 == SIMPLE IP
+		 * TYPE 1 == IP WITH THE CIDR BEING INFORMED
+		 * TYPE 2 == IP WITH THE SUBMASK BEING INFORMED
+		 * 
+		 * */
+		
 		btnNewButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
-				ip.setFirstOctet(Integer.parseInt(firstOct.getText()));
-				ip.setSecondOctet(Integer.parseInt(secondOct.getText()));
-				ip.setThirdOctet(Integer.parseInt(thirdOct.getText()));
-				ip.setFourthOctet(Integer.parseInt(fourthOct.getText()));
-
-				String err = new String();
-				boolean flag = false;
-
-				if (ip.getFirstOctet() <= 0 || ip.getFirstOctet() > 255) {
-					err = err + " First octet is out of range! ";
-					firstOct.setText("");
-					flag = true;
-				}
-				if (ip.getSecondOctet() <= 0 || ip.getSecondOctet() > 255) {
-					secondOct.setText("");
-					err = err + " Second octet is out of range! ";
-					flag = true;
-				}
-				if (ip.getThirdOctet() <= 0 || ip.getThirdOctet() > 255) {
-					thirdOct.setText("");
-					err = err + " Third octet is out of range! ";
-					flag = true;
-				}
-				if (ip.getFourthOctet() <= 0 || ip.getFourthOctet() > 255) {
-					fourthOct.setText("");
-					err = err + " Fourth octet is out of range! ";
-					flag = true;
-				}
-
-				if (flag == true) {
-					JOptionPane.showMessageDialog(frmSubnetCalculator, err, "Error!", JOptionPane.ERROR_MESSAGE);
-				}
-			}
-		});
-
-		btnNewButton.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent arg0) {
-				//YOU GOT THE IP AND THE SUBNET
-				if(typeOfIp.getSelectedIndex() == 2) {
+				
+				
+				/*
+				 * When the user clicks for the option with a subnet being entered
+				 * 
+				 * */
+				
+				if (typeOfIp.getSelectedIndex() == 2) {
+					
+					/* Data gathered from the texts fields and stored in the class created for that option
+					 * */
+					
+					
 					ipAndSubnet.setFirstOctet(Integer.parseInt(ipSubnet1Oct.getText()));
 					ipAndSubnet.setSecondOctet(Integer.parseInt(ipSubnet2Oct.getText()));
 					ipAndSubnet.setThirdOctet(Integer.parseInt(ipSubnet3Oct.getText()));
@@ -520,17 +553,192 @@ public class Calculator {
 					ipAndSubnet.setSecondOctSubNet(Integer.parseInt(subnet2Oct.getText()));
 					ipAndSubnet.setThirdOctSubNet(Integer.parseInt(subnet3Oct.getText()));
 					ipAndSubnet.setFourthOctSubNet(Integer.parseInt(subnet4Oct.getText()));
+					
+					
+					/*Code that decides witch class is being entered*/
+					
+					if (ipAndSubnet.getFirstOctet() >= 1 && ipAndSubnet.getFirstOctet() <= 126)
+						networkClass.setText("A");
+					if (ipAndSubnet.getFirstOctet() >= 128 && ipAndSubnet.getFirstOctet() <= 191)
+						networkClass.setText("B");
+					if (ipAndSubnet.getFirstOctet() >= 192 && ipAndSubnet.getFirstOctet() <= 223)
+						networkClass.setText("C");
+					if (ipAndSubnet.getFirstOctet() >= 224 && ipAndSubnet.getFirstOctet() <= 239)
+						networkClass.setText("D");
+					if (ipAndSubnet.getFirstOctet() >= 240 && ipAndSubnet.getFirstOctet() <= 255)
+						networkClass.setText("E");
+					
+					
+					/*Showing the subnet mask the have already being entered by the user*/
+					subnetMask.setText(ipAndSubnet.getFirstOctSubNet() + "." + 
+							ipAndSubnet.getSecondOctSubNet() + "." + 
+							ipAndSubnet.getThirdOctSubNet() + "." + ipAndSubnet.getFourthOctSubNet());
+					
+					
+					
+					/*Turning the subnet mask into four binary strings
+					 * */
+					
+					String binNetworkAddr1 = Integer.toBinaryString(ipAndSubnet.getFirstOctSubNet());
+					String binNetworkAddr2 = Integer.toBinaryString(ipAndSubnet.getSecondOctSubNet());
+					String binNetworkAddr3 = Integer.toBinaryString(ipAndSubnet.getThirdOctSubNet());
+					String binNetworkAddr4 = Integer.toBinaryString(ipAndSubnet.getFourthOctSubNet());
+					
+					/*All the binary strings being gathered together
+					 * As the java toBinaryString Function doesnt shows the zeros, I made a function
+					 * that replace the missings 0 on the left part of the binary number*/
+					
+					String binNetworkAddr = new String();
+					binNetworkAddr = replaceMissingChars(binNetworkAddr1) + replaceMissingChars(binNetworkAddr2)
+							+ replaceMissingChars(binNetworkAddr3) + replaceMissingChars(binNetworkAddr4);
+					
+					int counter = 0;
+					
+					/*
+					 * Statement to count how many ones you have in the binary to count how many bits
+					 * where taken from the host and network part
+					 * 
+					 * */
+					
+					for(int i=0;i<binNetworkAddr.length();i++) {
+						if(binNetworkAddr.charAt(i) == '1')
+							counter++;
+					}
+					
+					bitsInNetwork.setText(Integer.toString(counter));
+					bitsInHost.setText(Integer.toString(32 - counter));
+					cidr.setText(Integer.toString(counter));
+					
+					double numberOfHosts = 0;
+					numberOfHosts = Math.pow(2, 32-counter) - 2;
+					System.out.println(counter);
+					System.out.println(numberOfHosts);
+					hostsPerSubnet.setText(Double.toString(numberOfHosts));
+					
+					int networkAddress1 = ipAndSubnet.getFirstOctSubNet() & ipAndSubnet.getFirstOctet();
+					int networkAddress2 = ipAndSubnet.getSecondOctSubNet() & ipAndSubnet.getSecondOctet();
+					int networkAddress3 = ipAndSubnet.getThirdOctSubNet() & ipAndSubnet.getThirdOctet();
+					int networkAddress4 = ipAndSubnet.getFourthOctSubNet() & ipAndSubnet.getFourthOctet();
+					
+					networkAddress.setText(
+							networkAddress1 + "." + networkAddress2 + "." + networkAddress3 + "." + networkAddress4);
+
+			
+					String binBroadcastAdd = binNetworkAddr.substring(0, counter);
+					for(int i = 0 ; i<32-counter;i++)
+						binBroadcastAdd += "1";
+					System.out.println(binBroadcastAdd);
+					
+					String decNetworkAddr1 = binBroadcastAdd.substring(0, 8);
+					String decNetworkAddr2 = binBroadcastAdd.substring(8, 16);
+					String decNetworkAddr3 = binBroadcastAdd.substring(16, 24);
+					String decNetworkAddr4 = binBroadcastAdd.substring(24, 32);
+					
+					int nA1 =  Integer.parseInt(decNetworkAddr1, 2);
+					int nA2 =  Integer.parseInt(decNetworkAddr2, 2);
+					int nA3 =  Integer.parseInt(decNetworkAddr3, 2);
+					int nA4 =  Integer.parseInt(decNetworkAddr4, 2);
+					
+					broadcastAddress.setText(nA1 + "." + nA2 + "." + nA3 + "." + nA4);
 				}
-				//YOU GOT JUST THE VALUE OF VLSM
-				if(typeOfIp.getSelectedIndex() == 1) {
+				// YOU GOT JUST THE VALUE OF VLSM
+				if (typeOfIp.getSelectedIndex() == 1) {
 					ipVLSM.setFirstOctet(Integer.parseInt(vlsm1Oct.getText()));
 					ipVLSM.setSecondOctet(Integer.parseInt(vlsm2Oct.getText()));
 					ipVLSM.setThirdOctet(Integer.parseInt(vlsm3Oct.getText()));
 					ipVLSM.setFourthOctet(Integer.parseInt(vlsm4Oct.getText()));
 					ipVLSM.setVlsm(Integer.parseInt(vlsmLength.getText()));
-					//LILOOOOO
+
+					cidr.setText(vlsmLength.getText());
+
+					String maskBit = "";
+
+					for (int i = 0; i < ipVLSM.getVlsm(); i++) {
+						maskBit = maskBit + "1";
+					}
+					for (int i = 0; i < 32 - ipVLSM.getVlsm(); i++) {
+						maskBit = maskBit + "0";
+					}
+
+					int counter = 0;
+					for (int i = 0; i < maskBit.length(); i++)
+						if (maskBit.charAt(i) == '1')
+							counter++;
+
+					bitsInNetwork.setText(Integer.toString(counter));
+					bitsInHost.setText(Integer.toString(32 - counter));
+
+					String primeiroOct = maskBit.substring(0, 8);
+					String segundoOct = maskBit.substring(8, 16);
+					String teceiroOct = maskBit.substring(16, 24);
+					String quartoOct = maskBit.substring(24, 32);
+
+					System.out.println(primeiroOct);
+					System.out.println(segundoOct);
+					System.out.println(teceiroOct);
+					System.out.println(quartoOct);
+
+					int primOct = Integer.parseInt(primeiroOct, 2);
+					int secOct = Integer.parseInt(segundoOct, 2);
+					int tercOct = Integer.parseInt(teceiroOct, 2);
+					int quartOct = Integer.parseInt(quartoOct, 2);
+
+					subnetMask.setText(primOct + "." + secOct + "." + tercOct + "." + quartOct);
+
+					if (ipVLSM.getFirstOctet() >= 1 && ipVLSM.getFirstOctet() <= 126)
+						networkClass.setText("A");
+					if (ipVLSM.getFirstOctet() >= 128 && ipVLSM.getFirstOctet() <= 191)
+						networkClass.setText("B");
+					if (ipVLSM.getFirstOctet() >= 192 && ipVLSM.getFirstOctet() <= 223)
+						networkClass.setText("C");
+					if (ipVLSM.getFirstOctet() >= 224 && ipVLSM.getFirstOctet() <= 239)
+						networkClass.setText("D");
+					if (ipVLSM.getFirstOctet() >= 240 && ipVLSM.getFirstOctet() <= 255)
+						networkClass.setText("E");
+
+					int networkAddress1 = primOct & ipVLSM.getFirstOctet();
+					int networkAddress2 = secOct & ipVLSM.getSecondOctet();
+					int networkAddress3 = tercOct & ipVLSM.getThirdOctet();
+					int networkAddress4 = quartOct & ipVLSM.getFourthOctet();
+
+					networkAddress.setText(
+							networkAddress1 + "." + networkAddress2 + "." + networkAddress3 + "." + networkAddress4);
+
+					String binNetworkAddr1 = Integer.toBinaryString(networkAddress1);
+					String binNetworkAddr2 = Integer.toBinaryString(networkAddress2);
+					String binNetworkAddr3 = Integer.toBinaryString(networkAddress3);
+					String binNetworkAddr4 = Integer.toBinaryString(networkAddress4);
+
+					String binNetworkAddr = new String();
+					binNetworkAddr = replaceMissingChars(binNetworkAddr1) + replaceMissingChars(binNetworkAddr2)
+							+ replaceMissingChars(binNetworkAddr3) + replaceMissingChars(binNetworkAddr4);
+					System.out.println();
+					System.out.println(binNetworkAddr);
+					
+					String binBroadcastAdd = binNetworkAddr.substring(0, counter);
+					for(int i = 0 ; i<32-counter;i++)
+						binBroadcastAdd += "1";
+					System.out.println(binBroadcastAdd);
+					
+					String decNetworkAddr1 = binBroadcastAdd.substring(0, 8);
+					String decNetworkAddr2 = binBroadcastAdd.substring(8, 16);
+					String decNetworkAddr3 = binBroadcastAdd.substring(16, 24);
+					String decNetworkAddr4 = binBroadcastAdd.substring(24, 32);
+					
+					int nA1 =  Integer.parseInt(decNetworkAddr1, 2);
+					int nA2 =  Integer.parseInt(decNetworkAddr2, 2);
+					int nA3 =  Integer.parseInt(decNetworkAddr3, 2);
+					int nA4 =  Integer.parseInt(decNetworkAddr4, 2);
+					
+					broadcastAddress.setText(nA1 + "." + nA2 + "." + nA3 + "." + nA4);
+					double numberOfHosts = 0;
+					numberOfHosts = Math.pow(2, 32-counter) - 2;
+					System.out.println(counter);
+					System.out.println(numberOfHosts);
+					hostsPerSubnet.setText(Double.toString(numberOfHosts));
 				}
-				//ENTRY TYPE OF SIMPLE IP
+
+				// ENTRY TYPE OF SIMPLE IP
 				if (typeOfIp.getSelectedIndex() == 0) {
 
 					String err = new String();
@@ -612,19 +820,19 @@ public class Calculator {
 								broadcastAddress.setText(ip.getFirstOctet() + "." + ip.getSecondOctet() + ".255.255");
 								hostsPerSubnet.setText("65534");
 							}
-							if (ip.getFirstOctet() >= 192 && ip.getFirstOctet() <= 223 ) {
+							if (ip.getFirstOctet() >= 192 && ip.getFirstOctet() <= 223) {
 								networkClass.setText("C");
 								subnetMask.setText("255.255.255.0");
 								bitsInHost.setText("8");
 								bitsInNetwork.setText("24");
 								cidr.setText("/ 24");
-								networkAddress.setText(ip.getFirstOctet() + "." + ip.getSecondOctet() + "." +
-													    ip.getThirdOctet() +".0");
-								broadcastAddress.setText(ip.getFirstOctet() + "." + ip.getSecondOctet() + "." +
-									    					ip.getThirdOctet() +".255");
+								networkAddress.setText(ip.getFirstOctet() + "." + ip.getSecondOctet() + "."
+										+ ip.getThirdOctet() + ".0");
+								broadcastAddress.setText(ip.getFirstOctet() + "." + ip.getSecondOctet() + "."
+										+ ip.getThirdOctet() + ".255");
 								hostsPerSubnet.setText("254");
 							}
-							if (ip.getFirstOctet() >= 224 && ip.getFirstOctet() <= 239 ) {
+							if (ip.getFirstOctet() >= 224 && ip.getFirstOctet() <= 239) {
 								networkClass.setText("D - RESERVED");
 								subnetMask.setText("N/A");
 								bitsInHost.setText("N/A");
@@ -634,7 +842,7 @@ public class Calculator {
 								broadcastAddress.setText("N/A");
 								hostsPerSubnet.setText("N/A");
 							}
-							if (ip.getFirstOctet() >= 240 && ip.getFirstOctet() <= 255 ) {
+							if (ip.getFirstOctet() >= 240 && ip.getFirstOctet() <= 255) {
 								networkClass.setText("E - RESERVED");
 								subnetMask.setText("N/A");
 								bitsInHost.setText("N/A");
